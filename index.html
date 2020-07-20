@@ -1,0 +1,144 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+	<title>_Co</title>
+	<meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css">
+    <script src="https://code.jquery.com/jquery-3.4.1.js" integrity="sha256-WpOohJOqMqqyKL9FccASB9O0KwACQJpFTUBLTYOVvVU=" crossorigin="anonymous"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.form/4.2.2/jquery.form.min.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
+	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js"></script>
+	<link href="https://gitcdn.github.io/bootstrap-toggle/2.2.2/css/bootstrap-toggle.min.css" rel="stylesheet">
+	<script src="https://gitcdn.github.io/bootstrap-toggle/2.2.2/js/bootstrap-toggle.min.js"></script>
+	<script src="/socket.io/socket.io.js"></script>
+	<script src='https://kit.fontawesome.com/a076d05399.js'></script>
+	<link rel="stylesheet" type="text/css" href="css/style.css">
+	<script type="module" defer src="/js/script.js"></script>
+</head>
+<body>
+	<div class="fluid-container">
+		<nav class="nav navbar">
+			<span id="logo">_Co</span>
+			<span id="tabs"><button class="btn btn-primary createAcc">Create Account</button></span>
+		</nav>
+
+		<video id="landingPageVid" src="video/odds.mp4" autoplay muted loop></video>
+
+		<div class="mainSection row m-0">
+
+			<div class="pl-3 pt-2 welcomePage">
+				<h1 class="text-center">WELCOME TO _Co</h1>
+			</div>
+
+			<div id="user-login" class="p-4 m-0">
+				<div class="userLoginTitle">
+					<h1 class="text-center">
+						<i class="far fa-user-circle"></i>
+					</h1>
+					<h1 class="text-center">Login</h1>
+				</div>
+				<form id="formLogin" method="POST" enctype="multipart/form-data" class="mt-4" action="/login">
+					<div class="col-lg-12">
+						<label>Username</label>
+						<div class="logUserName">
+							<i class="fas fa-user-alt"></i>
+							<input type="text" name="username" id="username" class="form-control" placeholder="username@example.com">
+						</div>
+					</div>
+					<div class="mt-3 col-lg-12">
+						<label>Password</label>
+						<div class="logPassWord">
+							<i class="fas fa-lock"></i>
+							<input type="password" name="password" id="password" class="form-control" placeholder="*******">
+						</div>
+					</div>
+					<div class="mt-3 col-lg-12">
+						<button class="btn btn-primary mt-2 form-control" type="submit">Login</button>
+					</div>
+				</form>
+			</div>
+		</div>
+		<div role="dialog" id="createAccount">
+			<div class="modal-dialog">
+				<div class="modal-content" id="mc">
+					<div id="user-registration" class="row p-2 pb-4 m-0">
+						<div class="col-12 p-3 mb-1 accTitle">
+							<i class="fas fa-times Acc-Close"></i>
+							<h1 class="text-center">Create Account</h1>
+						</div>
+						<div class="col-lg col-md regWelcome">
+							<h2>Welcome to _Co</h2>
+						</div>
+						<div class="col-lg-8 col-md-8">
+							<form method="POST" id="formNewAccount" action="./newAccount">
+								<div class="col-lg-12 row">
+									<div class="col-lg-6">
+										<label>First Name</label>
+										<input type="text" name="fname" class="form-control name" placeholder="William">
+									</div>
+									<div class="col-lg-6">
+										<label>Last Name</label>
+										<input type="text" name="lname" class="form-control surname" placeholder="Harkey">
+									</div>
+								</div>
+								<div class="col-lg-12 row mt-2">
+									<div class="col-lg-6">
+										<label>Email Address</label>
+										<input type="email" name="umail" class="form-control mail" placeholder="william-harkey@gmail.com">
+									</div>
+									<div class="col-lg-6">
+										<label>Telephone</label>
+										<input type="text" name="tel" max="10" class="form-control tel" placeholder="0124512984">
+									</div>
+								</div>
+								<div class="col-lg-12 row mt-2">
+									<div class="col-lg-6">
+										<label>Gender</label>
+										<select class="form-control gender" name="gender">
+											<option value="male">Male</option>
+											<option value="female">Female</option>
+										</select>
+									</div>
+									<div class="col-lg-6">
+										<label>Date of Birth</label>
+										<input type="date" name="dob" class="form-control">
+									</div>
+								</div>
+								<div class="col-lg-12 row mt-2">
+									<div class="col-lg-6">
+										<label>Study Level</label>
+										<select class="form-control level" name="studyLevel">
+											<option value="primary">Primary</option>
+											<option value="secondary">Secondary</option>
+											<option value="tertiary">Tertiary</option>
+										</select>
+									</div>
+									<div class="col-lg-6">
+										<label>School Name</label>
+										<input type="text" name="school" class="form-control sname" placeholder="eg. Holland Secondary">
+									</div>
+								</div>
+								<div class="col-md-12 col-lg-12 mt-2 row">
+									<div class="col-md-6 col-lg-6">
+										<label>Password</label>
+										<input type="password" name="password" class="form-control" placeholder="*********">
+									</div>
+									<div class="col-lg-6 col-md-6">
+										<label>Confirm Password</label>
+										<input type="password" name="cpassword" class="form-control" placeholder="*********">
+									</div>
+								</div>
+								<div class="col-lg-12 mt-3">
+									<button type="submit" class="btn btn-success" id="registerAccount">Create Account</button>
+								</div>
+							</form>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</body>
+</html>

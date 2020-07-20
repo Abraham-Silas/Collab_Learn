@@ -1,0 +1,1112 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Collab Learn</title>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<meta http-equiv="Content-Type" content="text/html; charset=utf8" /> 
+	<meta http-equiv="Content-Type" content="text/html; charset=utf32" /> 
+	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css">
+    <script src="https://code.jquery.com/jquery-3.5.1.js" integrity="sha256-QWo7LDvxbWT2tbbQ97B53yJnYU3WhH/C8ycbRAkjPDc=" crossorigin="anonymous"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.form/4.2.2/jquery.form.min.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
+	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js"></script>
+	<link href="https://gitcdn.github.io/bootstrap-toggle/2.2.2/css/bootstrap-toggle.min.css" rel="stylesheet">
+	<script src="https://gitcdn.github.io/bootstrap-toggle/2.2.2/js/bootstrap-toggle.min.js"></script>
+	<script src="/socket.io/socket.io.js"></script>
+	<script src='https://kit.fontawesome.com/a076d05399.js'></script>
+	<link rel="stylesheet" type="text/css" href="css/style.css">
+	<link href='https://fonts.googleapis.com/css?family=Ubuntu|Archivo|Alegreya' rel='stylesheet'>
+	<link rel="icon" href="data:;base64,="/>
+	<script type="module" defer src="js/script.js"></script>
+</head>
+<body>
+	<div class="fluid-container">
+		<nav class="nav navbar" id="homeNav">
+			<span class="col-3 p-0" id="logo">
+				Collab Learn
+			</span>
+			<span class="col-6" id="notifications">
+				<i class="fas fa-chalkboard-teacher roomsDiscussions"><sup class="newRoomMsgs">0</sup></i>
+				<i class="fas fa-comment-alt messagesContainer"><sup class="newMsgNotification">0</sup></i>
+				<i class="fas fa-bell newNotification"><sup class="notificationCount">0</sup></i>
+				<!-- <i class="fas fa-calculator"></i> -->
+				<!--Impemented Solutions-->
+				<i class="fas fa-plus newContent">
+					<span class="addNew">
+						<i class="fas fa-external-link-square-alt pl-2 newPost"> <b>Create Post</b></i>
+						<i class="fas fa-calendar-plus pl-2 newEvent"> <b>Add Events</b></i>
+						<i class="fa fa-book pl-2 newSubject"> <b>Add Subjects</b></i>
+						<i class="fas fa-file-import pl-2 newExtra"> <b>Import Files</b></i>
+						<i class="fas fa-layer-group pl-2 newRooms"> <b>New Room</b></i>
+					</span>
+				</i>
+				<i class="fas fa-cog"></i>
+				<i class="fas fa-question-circle"></i>
+			</span>
+			<span id="profileView">
+				<label id="userID"></label>
+				<img class="rounded-circle userProfile" src="video/images.png">
+				<span class="profileMenu">
+					<i class="fa fa-user changeProfile"> Change Profile</i>
+					<i class="fa fa-cog"> Settings</i>
+					<i  class="fa fa-sign-out-alt userLogout"> Logout</i>
+					<form enctype="multipart/form-data" method="POST" action="/profileUpload">
+						<input type="text" name="userID" id="userProfileID" accept="image/jpg, image/png, image/jpeg">
+						<input type="file" name="prof" id="profileImg" accept="image/jpg, image/png, image/jpeg">
+						<input type="submit" id="uploadProfile">
+					</form>
+				</span>
+			</span>
+		</nav>
+		<div class="row m-0 main">
+			<div class="col-3">
+				<div class="row menuControl tab">
+					<span class="col" rel="folder">
+						<h4 class="text-center mt-1">
+							<i class="fas fa-folder"></i>
+						</h4>
+					</span>
+					<span class="col" rel="calendar">
+						<h4 class="text-center mt-1">
+							<i class="far fa-calendar-alt"></i>
+						</h4>
+					</span>
+					<span class="col" rel="chats">
+						<h4 class="text-center mt-1">
+							<i class="fas fa-comment"></i>
+						</h4>
+					</span>
+					<span class="col" rel="online-chats">
+						<h4 class="text-center mt-1">
+							<i class="fas fa-user-friends"></i>
+						</h4>
+					</span>
+				</div>
+
+				<div id="folder" class="row m-0">
+					<h5>Explorer</h5>
+					<div class="folders-container">
+						<div class="userSubjects">
+							<div class="explore">
+								<h4 for="classList"><i class="fas fa-book mr-2"></i>Subjects</h4>
+							</div>
+							<div class="classList">
+								<!--All your subjects will appear here-->
+							</div>
+						</div>
+						<div class="userNotes">
+							<div class="explore">
+								<h4 for="notesList" class="notesTab"><i class="far fa-sticky-note mr-2"></i>Notes</h4>
+							</div>
+						</div>
+						<div class="userBooks">
+							<div class="explore">
+								<h4 for="documents" class="docsTab"><i class="fas fa-file-alt mr-1"></i> Documents</h4>
+							</div>
+						</div>
+						<div class="extraMaterial">
+							<div class="explore">
+								<h4 for="material" class="mediaTab"><i class="fas fa-film mr-2"></i>Media</h4>
+							</div>
+						</div>
+						<div class="extraMaterial">
+							<div class="explore">
+								<h4 for="material" class="onlineStoreTab"><i class="fas fa-store mr-2"></i>Store</h4>
+							</div>
+						</div>
+					</div>
+				</div>
+
+				<!--Calendar Section Start-->
+				<div id="calendar" class="row">
+					<h5 class="pt-1 pl-2 eventsSection" rel="events-container" data="false">Upcoming Events<i class="fa fa-angle-down"></i> </h5>
+					<div class="row events-container">
+						<!--All Online Users will appear here-->
+					</div>
+					<h5 class="pt-1 pl-2 eventsSection" rel="past-events-container" data="false">Past Events <i class="fa fa-angle-down"></i></h5>
+					<div class="row past-events-container">
+						<!--All Online Users will appear here-->
+					</div>
+				</div>
+				<!--Calendar Section End-->
+
+				<!--Recent Chats Will Appear Here-->
+				<div id="chats" class="row">
+					<h5 class="ml-2 pt-1">Chats</h5>
+					<div class="row recent-chats-container">
+						<!--All Online Users will appear here-->
+					</div>
+				</div>
+				<!--End of Recent Chats-->
+
+				<!--Online Chats Start-->
+				<div id="online-chats" class="row">
+					<h5>Online Chats</h5>
+					<div class="m-0 p-0 row online-chats-container">
+						<!--All Online Users will appear here-->
+					</div>
+				</div>
+				<!--Online Chats End-->
+
+			</div>
+
+			<!--Posts section starts here-->
+			<div class="col-6 posts">
+				<!--Posts will appear here-->
+			</div>
+			<!--End of Posts section-->
+
+			<!--Private Posts section starts here-->
+			<div class="col-3 p-0">
+				<div class="row m-0 p-0 roomsHeader">
+					<span class="col text-center" rel="activeRooms">
+						<i class="fas fa-network-wired"> Active Rooms</i>
+					</span>
+					<!-- <span class="col text-center" rel="userNotesWin">
+						<i class="fa fa-user-edit"></i>
+					</span> -->
+				</div>
+				<!-- <div class="row m-0 userNotesWin" id="userNotesWin">
+					<div class="row m-0 noteSection">
+						<textarea rows="5" class="form-control" placeholder="Express your thoughts here..."></textarea>
+						<div class="notesControls">
+							<button class="btn btn-primary pl-4 pr-4 text-center" id="saveNote">Save</button>
+							<button type="button" class="btn btn-danger newRoomCreate"><a class="fa fa-plus mr-1"></a>Create Room</button>
+							<input id="toggle-one" class="m-0" data-style="choice" checked type="checkbox" data-size="mini" data-onstyle="danger" data-offstyle="primary">
+						</div>
+					</div>
+				</div> -->
+				<div class="row m-0" id="activeRooms">
+					<!--Your private notes will appear here-->
+				</div>
+		</div>
+		<!--Private Posts section ends here-->
+
+		<!--New Event Start Here-->
+		<div class="calendar-section">
+			<div class="new-event">
+				<div class="event-header">
+					<h1>New Event <i class="fa fa-times close-event-window"></i></h1>
+				</div>
+				<div class="description">
+					<textarea rows="3" placeholder="Enter your event here..." class="input-lg form-control eventName"></textarea>
+				</div>
+				<div class="row mt-3 date-controls">
+					<span class="col">
+						<label>Date</label>
+						<input type="date" class="input-lg form-control eventDate">
+					</span>
+					<span class="col">
+						<label>Time</label>
+						<input type="time" class="input-lg form-control eventTime">
+					</span>
+					<span class="col">
+						<label>Subject</label>
+						<select class="form-control eventSubjectOptions">
+							<option value="select">--Select--</option>
+						</select>
+					</span>
+				</div>
+				<div class="row mt-3 event-controls">
+					<span class="col">
+						<button class="form-control btn btn-dark saveEvent" type="button">Save</button>
+					</span>
+				</div>
+			</div>
+		</div>
+		<!--New Event Ends Here-->
+
+		<!--New Subjects Addition Starts Here-->
+		<div class="addNewSubjects">
+			<div class="newSubjectsWindow">
+				<div class="newSubHeader">
+					<h1 class="text-center">Choose Subjects <i>x</i></h1>
+				</div>
+				<div class="row p-2 newSubContent">
+					<div class="col-3">
+						<h3 class="ml-1">Saved Subjects 
+							<button class="btn btn-link btn-sm saveSubjects"><i class="fa fa-save"></i></button>
+						</h3>
+						<div class="pr-2 savedSubjects">
+							<!--Your selected subjects will appear here-->
+						</div>
+					</div>
+					<div class="col selectSubject">
+						<div class="row m-0 searchSubject">
+							<span class="col-8 p-0">
+								<button class="btn btn-danger btn-sm mr-1 newRequest">New Request</button>
+							</span>
+							<span class="col searchSubControls">
+								<input placeholder="Find a subject..." type="search" class="input-lg form-control">
+								<button type="button" class="btn btn-dark"><i class="fa fa-search"></i></button>
+							</span>
+						</div>
+						<div class="list">
+							
+						</div>
+					</div>
+				</div>
+			</div>
+			<div class="col newSubInfo">
+				<div class="header">
+					<h3>Request New Subject<i>X</i></h3>
+				</div>
+				<div class="mt-3">
+					<label>Subject Name</label>
+					<input type="text" class="form-control" placeholder="e.g Engineering"/>
+				</div>
+				<div class="mt-2">
+					<label>Subject Code</label>
+					<input type="text" class="form-control" placeholder="ENG_100"/>
+				</div>
+				<div class="mt-2">
+					<label>Subject Level</label>
+					<select class="form-control">
+						<option value="Primary">Primary</option>
+						<option value="Secondary">Secondary</option>
+						<option value="Optional">Tertiary</option>7
+					</select>
+				</div>
+				<div>
+					<button class="mt-2 btn btn-danger">Add Subject</button>
+				</div>
+			</div>
+		</div>
+		<!--New Subjects Addition Ends Here-->
+
+		<!--Add Extra Items Window Starts Here-->
+		<div class="addExtras">
+			<div class="extraContentWindow">
+				<div class="extraHeader">
+					<h2 class="text-center">Choose File<i class="m-1 fa fa-times"></i></h2>
+				</div>    
+				<div class="extraBody">
+					<div class="row m-0 extraType">
+						<label class="col text-center" for="extVid">
+							<i class="fas fa-video"></i>
+							<p>Videos</p>
+						</label>
+						<label class="col text-center" for="extAud">
+							<i class="fas fa-volume-up"></i>
+							<p>Audio</p>
+						</label>
+						<label class="col text-center" for="extImg">
+							<i class="fas fa-image"></i>
+							<p>Images</p>
+						</label>
+						<label class="col text-center" for="book">
+							<i class="fas fa-book"></i>
+							<p>Books</p>
+						</label>
+						<label class="col text-center" for="paper">
+							<i class="fas fa-file"></i>
+							<p>Papers</p>
+						</label>
+					</div>
+					<div class="row m-0 fileInputs">
+						<form id="uploadVideos" enctype="multipart/form-data" method="POST" action="/videoUpload">
+							<input type="text" name="fileName" id="vids">
+							<input type="text" name="userID" class="userID">	
+							<input type="file" rel="uploadVideo" name="vids" class="col" id="extVid" accept="video/mp4, video/ogg, video/mpeg, video/webm">
+							<input type="submit" name="upload" id="uploadVideo">
+						</form>
+						<form id="uploadAudios" enctype="multipart/form-data" method="POST" action="/audioUpload">
+							<input type="text" name="fileName" id="aud">
+							<input type="text" name="userID" class="userID">
+							<input type="file" rel="uploadAudio" name="aud" class="col" id="extAud" accept="audio/mp3, audio/ogg, audio/mp4, audio/wav, audio/avi, audio/wmv">
+							<input type="submit" name="upload" id="uploadAudio">
+						</form>
+						<form id="uploadImages" enctype="multipart/form-data" method="POST" action="/imageUpload">
+							<input type="text" name="fileName" id="imgs">
+							<input type="text" name="userID" class="userID">
+							<input type="file" rel="uploadImage" name="imgs" class="col" id="extImg" accept="image/jpg, image/jpeg, image/png, image/gif">
+							<input type="submit" name="upload" id="uploadImage">
+						</form>
+						<form id="uploadBooks" enctype="multipart/form-data" method="POST" action="/bookUpload">
+							<input type="text" name="fileName" id="bks">
+							<input type="hidden" name="userID" class="userID">
+							<input type="file" rel="uploadBook" name="bks" class="col" id="book" accept="application/pdf">
+							<input type="submit" name="upload" id="uploadBook">
+						</form>
+						<form id="uploadPapers" enctype="multipart/form-data" method="POST" action="/paperUpload">
+							<input type="text" name="fileName" id="pprs">
+							<input type="hidden" name="userID" class="userID">
+							<input type="file" rel="uploadPaper" name="pprs" class="col" id="paper" accept="application/pdf">
+							<input type="submit" name="upload" id="uploadPaper">
+						</form>
+					</div>
+					<div class="text-center p-5 preview">
+						<div class="progress">
+							<div class="progress-bar" role="progressbar" aria-valuenow="50" aria-valuemin="0" aria-valuemax="100"></div>
+						</div>
+						<div class="fileInfo">
+							<strong><i class="fas fa-check-circle"></i><i style="position: relative; font-style: normal; font-size: 14pt; color: black; top: -5px; left: 3px;">File Ready</i></strong>
+							<input type="text" class="form-control" placeholder="File Description (Required)">
+						</div>
+					</div>
+					<div class="text-center uploadFile">
+						<label class="btn btn-dark"><i class="fas fa-arrow-circle-up mr-2"></i>Upload</label>
+					</div>
+				</div>
+			</div>
+			<!-- <div class="alert alert-success" role="alert">
+				This is a success alert—check it out!
+			</div> -->
+		</div>
+		<!--Add Extra Items Window Ends Here-->
+
+		<!--New Public Post Starts Here-->
+		<div class="postWindow">
+			<div class="newPostPoP">
+				<form method="POST" enctype="multipart/form-data" action="/newTextPost">
+					<div class="postHeader">
+						<div class="p-2 pH7">
+							<h3>Create a Post <i class="fas fa-times"></i></h3>
+						</div>
+						<div class="mb-3 chooseSubject">
+							<div class="fa fa-angle-left aleft" id="aleft"></div>
+							<div class="scroll" id="scroll">
+								
+							</div>
+							<div class="fa fa-angle-right aright" id="aright"></div>
+						</div>
+						<div class="postTitle">
+							<div class="input-group input-group-lg mb-3">
+								<div class="input-group-prepend">
+								<span class="input-group-text" id="topic">Subject</span>
+								</div>
+								<input type="text" name="topic" class="form-control" placeholder="Type your topic here..." aria-describedby="topic">
+							</div>
+						</div>
+					</div>
+					<div class="mb-3 postBody">
+						<textarea rows="10" name="post" class="form-control" placeholder="Express your thoughts here..."></textarea>
+					</div>
+					<div class="postFooter">
+						<div class="postAddOns">
+							<label for="postImage" class="fa fa-image"></label>
+							<i class="far fa-grin"></i>
+							<input type="hidden" name="userid" id="userid">
+							<input type="hidden" name="subject" id="subject">
+							<input name="postImage" id="postImage" type="file" accept="image/*" style="visibility: hidden;">
+						</div>
+						<div class="postSubmit">
+							<button class="btn btn-primary" type="submit"><i class="fa fa-share mr-1"></i>Share</button>
+						</div>
+					</div>
+				</form>
+			</div>
+		</div>
+		<!--New Public Post Ends Here-->
+
+		<!--Media Content Starts Here-->
+		<div class="userContent">
+			<ul class="nav nav-tabs pr-4" role="tablist">
+				<li class="nav-item mediaTitle">
+					<a class="nav-link" data-toggle="tab">Media</a>
+				</li>
+				<li class="nav-item">
+				  <a class="nav-link" data-toggle="tab" href="#videos"><span class="fas fa-video"></span> Videos</a>
+				</li>
+				<li class="nav-item">
+				  <a class="nav-link" data-toggle="tab" href="#audios"><span class="fas fa-headphones"></span> Audios</a>
+				</li>
+				<li class="nav-item">
+				  <a class="nav-link" data-toggle="tab" href="#images"><span class="fas fa-images"></span> Images</a>
+				</li>
+				<li class="nav-item messagesContainer">
+					<a class="nav-link" data-toggle="tab"><span class="fas fa-comment-alt"><sup class="newMsgNotification">0</sup></span> Messages</a>
+				 </li>
+				<li class="nav-item newNotification">
+					<a class="nav-link" data-toggle="tab"><span class="fas fa-bell"><sup class="notificationCount">0</sup></span> Notifications</a>
+				</li>
+				<i class="fa fa-times closeUserContent"></i>
+				<i class="fas fa-minus minimizeUserContent"></i>
+			</ul>
+			
+			  <!-- Tab panes -->
+			<div class="tab-content">
+				<div id="videos" class="tab-pane active">
+					<div class="row m-0 userVideoContent">
+						<div class="videosCollection">
+							<!--ALL THE USER VIDEOS WILL APPEAR HERE-->
+						</div>
+					  </div>
+				 </div>
+				<div id="audios" class="tab-pane fade">
+					<div class="audioColections">
+						<!--ALL THE USER AUDIOS WILL APPEAR HERE-->
+					</div>
+				</div>
+				<div id="images" class="tab-pane fade">
+				  <div class="imagesCollection">
+						<!--ALL THE USER IMAGE COLLECTION WILL APPEAR HERE-->
+				  </div>
+				</div>
+			</div>			
+		</div>
+		<!--Media Content Ends Here-->
+
+		<!--Documents Content Window Starts Here-->
+		<div class="documentsWindow">
+			<div class="docsNav">
+				<span class="col-3 p-0">
+					<a>Documents</a>
+				</span>
+				<span class="col-8">
+					<a class="loadAllDocs">All</a>
+					<a class="loadBooks">Books</a>
+					<a class="loadPapers">Papers</a>
+					<a class="messagesContainer">Messages<sup class="newMsgNotification">0</sup></a>
+					<a class="newNotification">Notifications<sup class="notificationCount">0</sup></a>
+					<span class="search">
+						<label>Search</label>
+						<input type="search" placeholder="Type our search..." class="ml-1 form-control"/>
+					</span>
+				</span>
+				<span class="col">
+					<i class="fa fa-times"></i>
+				</span>
+			</div>
+			<div class="docuContent">
+				<!--ALL THE USER DOCUMENTS WILL APPEAR HERE-->
+			</div>
+		</div>
+		<!--Documents Content Window Ends Here-->
+
+		<!--Messages Window Starts Here-->
+		<div class="messagesWin">
+			<div class="messagesContent">
+				<h1>
+					<strong class="ml-3 pt-4 text-center userTitle">MESSAGES</strong> 
+					<span class="fa fa-times closeMsgWin"></span>
+					<span class="fa fa-minus minMsgWin"></span>
+					<span class="fas fa-user-plus startConversation"> Contacts</span>
+				</h1>
+				<div class="m-0">
+					<div class="activeChats">
+						<!-- <div class="m-0 findChat">	
+							<h2 class="m-0 p-2 text-center">Recent Chats</h2>
+						</div> -->
+						<div class="chatsList">
+							<!--ALL THE USERS AVAILABLE WILL APPEAR HERE-->
+						</div>
+					</div>
+					<div class="col m-0 messages">
+						<div class="msgsContainer">
+							<!-- CHAT MESSAGES WILL APPEAR HERE -->
+						</div>
+						<div class="mediaPrev">
+							<i class="fas fa-times-circle"></i>
+							<img width="150" height="90"/>
+							<video width="150" height="90"></video>
+						</div>
+						<div class="emoticons">
+							
+						</div>
+						<div class="messageTextField">
+							<form enctype="multipart/form-data" id="privateMsgFrm" action="/newPrivateMessage" method="POST">
+								<div class="funContent">
+									<label class="fa fa-grin emoticon"></label>
+									<label for="msgFiles" class="fa fa-paperclip"></label>
+									<input type="file" id="msgFiles" name="msgFile"/>
+									<input type="text" id="msgFrom" name="msgFrom"/>
+									<input type="text" id="msgTo" name="msgTo"/>
+								</div>
+								<div class="chatContent">
+									<textarea rows="4" accept-charset="utf8mb4" name="message" placeholder="Type a message..." class="form-control userMsgtxt"></textarea>
+									<button type="submit" class="btn btn-warning btnSendMsg">Send</button>
+								</div>
+							</form>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+		<!--Messages Window Ends Here-->
+
+		<!--Chat Modal Start Here-->
+		<div class="privateResponseWin">
+			<div class="chat-window">
+				<div class="chat-header">
+					<img class="rounded-circle" width="45" height="45"/>
+					<span class="chat-username">Warreis Joihdg</span>
+					<i class="fa fa-times closePrivateWin"></i>
+					<i class="fa fa-paperclip attach"></i>
+					<i class="far fa-grin emoji"></i>
+				</div>
+				<div class="chat-body">
+					<!--Active chat messages will appear here-->
+				</div>
+				<div class="pvMediaPrev">
+					<i class="fas fa-times-circle"></i>
+					<img width="160" height="100"/>
+					<video width="160" height="100"></video>
+				</div>
+				<div class="chat-controls">
+					<form id="privateChatMsg" method="POST" enctype="multipart/form-data" action="/newPrivateMessage">
+						<input type="file" id="attachFile" name="msgFile"/>
+						<input type="text" id="from" name="msgFrom"/>
+						<input type="text" id="to" name="msgTo"/>
+						<textarea rows="4" class="form-control" placeholder="Type a message..." name="message"></textarea>
+						<button type="submit" data-placement="bottom" data-toggle="tooltip" title="Send" class=" fa fa-paper-plane"></button>
+					</form>
+				</div>
+			</div>
+		</div>
+		<!--Chat Modal Ends-->
+
+		<!--Main Chat Rooms-->
+		<div class="roomsWindow">
+			<div class="navBAR">
+				<button type="button" class="btn btn-danger btn-sm">Exit Room<span class="fas fa-user-times ml-1"></span></button>
+				<b class="fas fa-comment-alt messagesContainer"><sup class="newMsgNotification">0</sup> Messages</b>
+				<b class="fas fa-bell newNotification"><sup class="notificationCount">0</sup> Notifications</b>
+				<!-- <b class="far fa-plus-square invitePPL"> Invite</b> -->
+				<i class="fa fa-minus"></i>
+			</div>
+			<div class="row m-0 roomsMainContent">
+				<div class="roomChatWindow col-7">
+					<div class="roomsConversations">
+						<div class="pt-1 roomChats">
+							<!--Rooms Chat Conversations-->
+						</div>
+						<div class="roomMediaPreview">
+							<i class="fas fa-times-circle"></i>
+							<img width="150" height="90"/>
+							<video width="150" height="90"></video>
+						</div>
+						<div class="mcemoticons">
+							<!-- // -->
+						</div>
+						<div class="chatsControlsContainer">
+							<form class="chatsControls" enctype="multipart/form-data" method="POST" action="/roomChatMsg">
+								<div class="smileys">	
+									<label class="fa fa-grin rmemoticon"></label>
+									<label for="rfile" class="fa fa-paperclip"></label>
+								</div>
+								<div class="roomMsg">
+									<textarea rows="4" placeholder="Type a message..." class="form-control roomsMsgTextBox" name="roomsMsgTextBox"></textarea> 
+								</div>
+								<div class="roomBtnSend">
+									<button type="submit" class="btn btn-primary btn-sm">Send <i class="fas fa-paper-plane ml-1 mt-1"></i></button>
+									<input type="text" name="userID" id="tfile">
+									<input type="file" name="file" id="rfile">
+									<input type="text" name="ref" id="refID">
+								</div>
+							</form>
+						</div>
+					</div>
+					<!--Activity Mode Could be implemented at a later stage-->
+				</div>
+				<div class="col newNotifications">
+					
+				</div>
+			</div>
+			<div class="footer">
+				<h5 class="text-center"><i class="fa fa-copyright mr-2"></i> A _Co prodcution 2020</h5>
+			</div>
+		</div>
+		<!--End Main Chat Rooms-->
+
+		<!--Room creation window-->
+		<div class="newRoomBg">
+			<i class="fa fa-times"></i>
+			<div class="roomWindow">
+				<h3>Create New Room</h3>
+				<form id="newRoomFrm" action="/createRoom" method="POST" enctype="multipart/form-data">
+					<div>
+						<label>Room Name</label>
+						<input type="text" class="form-control" name="roomName" id="roomName" placeholder="What is artificial intelligence?...">
+					</div>
+					<div>
+						<label>Subject</label>
+						<select class="form-control" name="subject" id="roomSubject">
+							
+						</select>
+					</div>
+					<div>
+						<label>Room Type</label>
+						<select class="form-control" name="roomType" id="roomType">
+							<option>--Select--</option>
+							<option value="Public">Public</option>
+							<option value="Private">Private</option>
+						</select>
+					</div>
+					<div>
+						<label>Room Description</label>
+						<textarea rows="4" class="form-control" name="roomDescription" id="roomDescription" placeholder="Write a description here..."></textarea>
+					</div>
+					<div>
+						<label for="file" id="mediaUpladBtn">Room Profile</label>
+						<label for="file1" id="mediaUpladBtn">Attach File</label>
+						<label class="far fa-check-circle ml-1 fileStatus"></label>
+						<input type="file" class="form-control roomFile" name="cover" id="file">
+						<input type="file" class="form-control roomFile" name="file" id="file1">
+						<input type="hidden" class="form-control roomUserID" name="userId">
+						<div class="progress">
+							<div class="progress-bar" role="progressbar" aria-valuenow="50" aria-valuemin="0" aria-valuemax="100"></div>
+						</div>
+					</div>
+					<div class="mt-2">
+						<button type="submit" class="btn btn-primary createRoom">Create</button>
+						<input type="text" name="token" id="token">
+					</div>
+				</form>
+			</div>
+		</div>
+		<!--Room creation window Ends-->
+
+		<!--Room Join Confirmation-->
+		<div class="join">
+			<div class="roomInfo">
+				<div class="roomheader">
+					<i class="fas fa-times"></i>
+					<img src="##" />
+					<h1 class="m-0"></h1>
+				</div>
+				<div class="roomBody">
+					<div class="roomProfile">
+						<span>
+							<img src="##"/> 
+						</span>
+						<span>
+							<b class="roomAdmin">Paul Pausoe</b>
+							<i class="roomSubject"></i>
+						</span>
+						<button class="btn btn-danger btn-sm"></button>
+					</div>
+					<div class="roomDescription">
+						Room Description
+					</div>
+				</div>
+			</div>
+		</div>
+		<!--Room Join Confirmation Ends-->
+
+		<!--Room Exit Prompt-->
+		<div class="exit">
+			<div class="exitRoom">
+				<h4>Are you sure you want to exit this room?</h4>
+				<button class="btn btn-success exitRM">Yes</button>
+				<button class="btn btn-danger mr-2 stayInRM">No</button>
+			</div>
+		</div>
+		<!--Room Exit Prompt Ends-->
+
+		<!--Room Sign-In Prompt-->
+		<div class="want2Join">
+			<div class="want2JoinRoom">
+				<h3 class="text-center"><i class="fas fa-exclamation-circle"></i></h3>
+				<b>Please join a room before you can proceed!</b>
+				<button class="btn btn-success okay">Okay</button>
+			</div>
+		</div>
+		<!--Room Sign-In Prompt Ends-->
+
+		<!-- Notifications Window -->
+		<div class="notificationsWin">
+			<div class="notf">
+				<div>
+					<h3 class="p-3"><span class="fa fa-bell mr-1"></span> Notifications<i class="fa fa-times"></i></h3>
+				</div>
+				<div class="notifContent">
+					<!-- // -->
+				</div>
+			</div>
+		</div>
+		<!-- Notifications Window Ends -->
+
+		<!--Room Security Setting Pop Start-->
+		<div class="accessSetting">
+			<h3 class="text-center">Room Access</h3>
+			<div>
+				<label>Access Token</label>
+				<input type="text" class="form-control accessTok" name="accessTok">
+			</div>
+			<div>
+				<button class="btn btn-success btn-sm" type="button">Set</button>
+			</div>
+		</div>
+		<!--Room Security Setting Pop Ends-->
+
+		<!-- // -->
+		<div class="newRoomWindow">
+			<i class="fa fa-times rmlistX"></i>
+			<div class="myRoomsList">
+				<h1 class="text-center">Select a Session <i class="fa fa-sync"></i></h1>
+				<div class="rmlist">
+					<!--  -->
+				</div>
+			</div>
+			<div class="newRoomItem">
+				<h1 class="text-center mb-2">Choose Action</h1>
+				<button class="btn btn-dark makeAroom">Create New Room</button>
+				<button class="btn btn-primary selectAroom">Select A Room</button>
+			</div>
+		</div>
+		<!-- -- -->
+
+		<!-- User Invitation Starts Here -->
+		<div class="invitationWindow">
+			<div class="invContent">
+				<h2 class="text-center"><span class="fas fa-arrow-left"></span>Invite People<i class="fas fa-arrow-right"></i></h2>
+				<div class="usersList">
+					
+					<!--  -->
+				</div>
+			</div>
+		</div>
+		<!-- User Invitation Ends Here -->
+
+		<!-- Contacts List Window -->
+		<div class="contactsWin">
+			<h1>Contacts <input placeholder="Find contacts..." type="text" class="form-control findContacts"><span class="fa fa-times constactsWinClose"></span><span class="fa fa-search searcForContact"></span></h1>
+			<div class="contactsList">
+				<!-- Your contacts will appear here -->
+			</div>
+		</div>
+		<!-- Contacts List Window Ends -->
+
+		<!-- START OF DOCUMENT STUDY MODE -->
+		<div class="studyModeWin">
+			<div class="row m-0 studyContentWin">
+				<div class="m-0 p-0 col-7 pdfView">
+				</div>
+				<div class="m-0 p-0 col-5 pdfEdit">
+					<div class="pdfHeader">
+						<span class="fas fa-book-open mr-2"><i class="fas fa-star-of-life autosave" style="position: absolute; top: -8px; font-size: 10pt; left: -8px; color: orange;"></i></span>
+						<b class="pdfTitle"></b>
+						<i class="fa fa-times pdfWinClose"></i>
+					</div>
+					<div class="pdfBody">
+						<textarea class="form-control userTextNotes" placeholder="Type your study notes here......."></textarea>
+					</div>
+				</div>
+			</div>
+		</div>
+		<!-- END OF DOCUMENT STUDY MODE -->
+
+		<!-- START OF VIDEO STUDY MODE -->
+		<div class="vStudyModeWin">
+			<div class="row m-0 studyContentWin">
+				<div class="m-0 p-0 col-7 videoView"></div>
+				<div class="m-0 p-0 col videoEdit">
+					<div class="vHeader">
+						<span class="fas fa-video mr-1"><i class="fas fa-star-of-life autosave" style="position: absolute; top: -8px; font-size: 10pt; left: -8px; color: orange;"></i></span>
+						<b class="vTitle"></b>
+						<i class="fa fa-times vWinClose"></i>
+					</div>
+					<div class="vBody">
+						<!-- ///User Study Notes Will Appear Here/-->
+						<textarea class="form-control userTextNotes" placeholder="Type your study notes here......."></textarea>
+					</div>
+				</div>
+			</div>
+		</div>
+		<!-- END OF VIDEO STUDY MODE -->
+
+		<!-- USER SUBJECTS WINDOW -->
+		<div class="userSubWindow">
+			<div class="row m-0 userSub">
+				<div class="userSubHeader">
+					<b><i class="fas fa-book-open"></i> SUBJECT MANAGER</b>
+					<span>
+						<i class="fa fa-times"></i>
+						<!-- <i class="fa fa-search"></i> -->
+					</span>
+				</div>
+				<div class="m-0 row userSubMainContent">
+					<div class="m-0 p-0 col-3 subjectManagerMenu">
+						<h4 class="text-center mt-2 mb-4">Menu</h4>
+						<b id="dashboard"><i class="fas fa-house-user mr-2"></i>Home</b>
+						<b id="subBooks"><i class="fas fa-book mr-2"></i> Books</b>
+						<b id="subPapers"><i class="fas fa-file-alt mr-2"></i> Papers</b>
+						<b id="subVideos"><i class="fas fa-video mr-2"></i>Videos</b>
+						<b id="subTasks"><i class="fas fa-tasks mr-2"></i>Projects</b>
+						<b id="subEvents"><i class="fas fa-calendar-alt mr-2"></i>Upcoming Events</b>
+						<!-- <b>
+							<i class="fas fa-upload mr-2"></i>Upload
+							<span>
+								<button type="button" class="btn btn-success btn-sm" rel="submit_b">Books</button>
+								<button type="button" class="btn btn-success btn-sm" rel="submit_p">Papers</button>
+								<button type="button" class="btn btn-success btn-sm" rel="submit_v">Videos</button>
+							</span>
+						</b> -->
+					</div>
+					<div class="m-0 p-0 col subjectManagerContent">
+						<div class="dashboard">
+							<h2 class="text-center pt-5">WELCOME TO <br><i class="subjectName">ARTIFICIAL INTELLIGENCE</i></h2>
+							<div class="subjectDash">
+								<div class="text-center">
+									<i class="prj">3</i>
+									<i>Projects</i>
+								</div>
+								<div class="text-center">
+									<i class="evnt">3</i>
+									<i>Events</i>
+								</div>
+								<div class="text-center">
+									<i class="cmplt">3</i>
+									<i>Completed</i>
+								</div>
+							</div>
+						</div>
+						<div class="subBooks">
+							<h2 class="text-center p-1">BOOKS <button style="float: right;" type="button" class="btn btn-danger btn-sm" rel="submit_b">Upload</button></h2>
+							<div class="subjectItems" id="bookItems">
+								<!-- /Book Items/ -->
+							</div>
+						</div>
+						<div class="subPapers">
+							<h2 class="text-center p-1">PAPERS <button style="float: right;" type="button" class="btn btn-danger btn-sm" rel="submit_p">Upload</button></h2>
+							<div class="subjectItems" id="paperItems">
+								<!-- /Paper Items/ -->
+							</div>
+						</div>
+						<div class="subVideos">
+							<h2 class="text-center p-1">VIDEOS <button style="float: right;" type="button" class="btn btn-danger btn-sm" rel="submit_v">Upload</button></h2>
+							<div class="subjectItems" id="videoItems">
+								<!-- /Video Items/ -->
+							</div>
+						</div>
+						<div class="subTasks">
+							<h2 class="p-1 text-center">PROJECTS <button style="float: right;" class="btn btn-danger btn-sm">New Project</button></h2>
+							<div class="subjectItems" id="projectItems">
+								<!-- /Project Items/ -->
+							</div>
+						</div>
+						<div class="subEvents">
+							<h2 class="text-center p-1">EVENTS</h2>
+							<div class="subjectItems" id="eventItems">
+								<!-- /Event Items/ -->
+							</div>
+						</div>
+					</div>
+				</div>
+				<div class="windowForms">
+					<form enctype="multipart/form-data" method="POST" action="/booksFileUpload">
+						<input type="text" name="subject" class="subjectID">
+						<input type="text" name="userID" class="userObject">	
+						<input type="file" name="subBook" class="submit_b" accept="application/pdf">
+						<input type="submit" name="upload" id="submit_b">
+					</form>
+					<form enctype="multipart/form-data" method="POST" action="/videoFileUpload">
+						<input type="text" name="subject" class="subjectID">
+						<input type="text" name="userID" class="userObject">	
+						<input type="file" name="subVideo" class="submit_v" accept="video/mp4">
+						<input type="submit" name="upload" id="submit_v">
+					</form>
+					<form enctype="multipart/form-data" method="POST" action="/papersFileUpload">
+						<input type="text" name="subject" class="subjectID">
+						<input type="text" name="userID" class="userObject">	
+						<input type="file" name="subPaper" class="submit_p" accept="application/pdf">
+						<input type="submit" name="upload" id="submit_p">
+					</form>
+				</div>
+			</div>
+		</div>
+		<!-- END USER SUBJECTS WINDOW -->
+
+		<!-- CREATE PROJECT -->
+		<div class="createProjectWindow">
+				<div class="createProject">
+				<h1 class="text-center">New Project <i class="fa fa-times"></i></h1>
+				<div>
+					<label>Project Name</label>
+					<input type="text" class="form-control newProject">
+				</div>
+				<div>
+					<button class="btn btn-primary mt-2 newProjectCreate">Create Project</button>
+				</div>
+			</div>
+		</div>
+		<!-- END CREATE PROJECT -->
+
+		<!-- PROJECT CREATION CONTINUE -->
+		<div class="row m-0 p-2 projectFinish">
+			<h1 class="col-12 text-center mb-4">Project</h1>
+			<div class="col">
+				<h4 class="mk">Name: Building A Chat Application</h4>
+				<div>
+					<label>Project Description</label>
+					<textarea rows="7" class="form-control projectDescription"></textarea>
+				</div>
+				<div class="mt-2">
+					<label>Importance</label>
+					<select class="form-control projectPriority">
+						<option value="select">--Select--</option>
+						<option value="Low">Low</option>
+						<option value="Medium">Medium</option>
+						<option value="High">High</option>
+					</select>
+				</div>
+			</div>
+			<div class="col-12">
+				<button class="btn btn-primary mt-4 completeProject">Next <i class="fa fa-angle-right ml-3"></i></button>
+			</div>
+		</div>
+		<!-- END PROJECT CREATION -->
+
+		<!-- /NOTES LIST/ -->
+		<div class="notesListWin">
+			<div class="allNotesList">
+				<h1 class="pr-1 text-center">Notes <i class="fa fa-times"></i></h1>
+				<div class="notesMenu">
+					<span>
+						<a href="#" class="btn btn-success newTextNotes">New</a>
+					</span>
+					<span>
+						<input placeholder="Search your notes..." type="search" class="form-control findA_Note">
+						<i class="fa fa-search"></i>
+					</span>
+				</div>
+				<div class="abundant">
+					<div class="notesItems">
+						<!-- /ALL USER'S NOTES/ -->
+					</div>
+				</div>
+			</div>
+		</div>
+		<!-- /END OF NOTES LIST/ -->
+
+		<!-- NEW NOTE -->
+		<div class="newNoteWin">
+			<div class="newNote">
+				<h1 class="text-center">Create Note<i class="fa fa-times"></i> </h1>
+				<div>
+					<label>Name</label>
+					<input type="text" class="form-control noteName" required>
+				</div>
+				<button type="button" class="mt-2 btn btn-primary">Create</button>
+			</div>
+		</div>
+		<!-- END NEW NOTE -->
+
+		<!-- NOTES -->
+		<div class="notesWindow">
+			<div class="notesWriting">
+				<h2><span class="fas fa-sticky-note mr-2"><a class="fa fa-star-of-life autosave"></a></span><span class="userNoteTitle">Note Title Here</span> <i class="mr-5 fas fa-glasses goToStudyMode" data-toggle="tooltip" data-placement="bottom" title="Study Mode"></i><i class="fa fa-times closeNotesEditWind"  data-toggle="tooltip" data-placement="bottom" title="Close"></i></h2>
+				<textarea placeholder="Type your notes here..." class="form-control userNoteSection"></textarea>
+				<!-- <div class="noteControls">
+					<button class="btn btn-primary">Save</button>
+				</div> -->
+			</div>
+		</div>
+		<!-- END OF NOTES -->
+
+		<!-- NEW POST ROOM -->
+		<div class="newPostRoomWindow">
+			<div class="newPostRoom">
+				<form action="/createRoom" method="POST" enctype="multipart/form-data">
+					<h4 class="p-2 text-center">New Room<i class="fa fa-times"></i></h2>
+					<div>
+						<label>Room Description</label>
+						<textarea rows="5" class="form-control m-0" name="roomDescription" required></textarea>
+					</div>
+					<div>
+						<label>Room Type</label>
+						<select class="form-control" name="roomType" required>
+							<option value="select">--Select--</option>
+							<option value="Public">Public</option>
+							<option value="Private">Private</option>
+						</select>
+					</div>
+					<div>
+						<label class="btn btn-dark selectRoomCover" for="thisCover"><i class="fas fa-paperclip"></i> Select Room Cover</label>
+						<span class="spinner-border text-danger ml-2 attachingFile"></span>
+						<span class="fas fa-check ml-2 fileReady"></span>
+						<input type="file" id="thisCover" name="cover">
+						<input type="hidden" name="roomName" id="rmName" required>
+						<input type="hidden" name="subject" id="rmSubject" required>
+						<input type="hidden" name="file" id="rmMedia">
+						<input type="hidden" name="userId" id="userId">
+					</div>
+					<div>
+						<button type="submit" class="btn btn-primary">Create</button>
+					</div>
+				</form>
+			</div>
+		</div>
+		<!-- END NEW POST ROOM -->
+
+		<!-- ONLINE STORE -->
+		<div class="onlineStoreWindow">
+			<div class="onlineStoreContentWindow">
+				<nav class="row m-0">
+					<span class="col pt-2">
+						<h3>
+							Online Store
+						</h3>
+					</span>
+					<span class="text-center col-6">
+						<input placeholder="Find a product..." type="search" class="form-control input-lg findAProduct"/>
+					</span>
+					<span class="col p-0">
+						<button class="btn btn-warning advertiseYourProduct">Advertise</button>
+						<i class="fa fa-times closeStore"></i>
+					</span>
+				</nav>
+				<div class="row m-0 storeContentManager">
+					<div class="col-3 p-0 storeUserMenu">
+						<div class="onlineUserProfile">
+							<img width="70" height="70" class="rounded-circle" src="$2a$10$ZkdCSKW.O1ibGCCt1h8LcOZenFIbf3nIK841zYUyV2N3HzEEns5A6/media/images/imgs-1593876955306.jpg">
+							<h4>John James</h4>
+						</div>
+						<div class="menuItems">
+							<h5><i class="fas fa-redo mr-2"></i>Recent</h5>
+							<h5><i class="fas fa-shopping-basket mr-2"></i>Purchases</h5>
+							<h5><i class="fas fa-sync-alt mr-2"></i>Pending Orders</h5>
+						</div>
+					</div>
+					<div class="col p-0 storeItems">
+						<div style="display: inline-flex; flex-wrap: wrap;" class="itemsList">
+							
+							<div class="sellingItem">
+								<img src="$2a$10$ZkdCSKW.O1ibGCCt1h8LcOZenFIbf3nIK841zYUyV2N3HzEEns5A6/media/images/imgs-1589642840771.jpg">
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+		<!-- END ONLINE STORE -->
+
+		<!-- ADVERTISE A PRODUCT -->
+		<div class="advertiseBackWindow">
+			<form class="advertiseWindow" method="POST" enctype="multipart/form-data" action="/advertise">
+				<h1 class="p-2 text-center">Advertise Your Product <i class="fa fa-times closeAdvertiseWin"></i></h1>
+				<div class="row m-0">
+					<div class="pt-4 col-6">
+						<div>
+							<label>Product Name</label>
+							<input placeholder="Physics Textbook" type="text" class="form-control" name="name" required>
+						</div>
+						<div class="mt-2">
+							<label>Product Price</label>
+							<input placeholder="200" type="number" class="form-control" name="price" required>
+						</div>
+						<div class="mt-2">
+							<label>Product Description</label>
+							<textarea placeholder="Type your description here..." class="form-control" rows="4" name="description" required></textarea>
+						</div>
+					</div>
+					<div class="col">
+						<div class="productUpload">
+							<label for="productImg"><i class="fas fa-cloud-upload-alt mr-2"></i>Upload Product</label>
+							<input type="file" name="productImg" id="productImg">
+							<input type="hidden" name="user" id="user">
+							<div class="productImgPreview">
+								<!-- /PRODUCT SALE PREVIEW/ -->
+							</div>
+						</div>
+						<button style="float: right;" type="submit" class="mt-2 btn btn-danger">Advertise</button>
+					</div>
+				</div>
+			</form>
+		</div>
+		<!-- END ADVERTISE A PRODUCT -->
+	</div>
+</body>
+</html>
