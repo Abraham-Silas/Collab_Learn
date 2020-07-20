@@ -556,6 +556,7 @@ $(() => {
 	$(document).on("click", ".scroll button", e => {
 		var topic = $(e.target).text();
 		$("#topic").text(topic);
+		$("#subject").val(e.target.id);
 		$(".postAddOns #subject").attr("value", topic);
 	});
 

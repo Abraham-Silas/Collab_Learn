@@ -84,42 +84,23 @@ app.post("/newPrivateMessage", (req, res) => { upload({fileDestination: "media",
 app.post("/advertise", (req, res) => { upload({fileDestination: "items", uploadType: "public"}, {field: "productImg", type: "onlineSelling"}, req, res); });
 
 app.post("/newTextPost", text.none(),(req, res) => {
-let textPostObject = {
-	post_id: null,
-	user_id: req.body.userid,
-	topic: req.body.topic,
-	post: req.body.post,
-	post_date: getDateTime(),
-	subject_id: null,
-	post_image: null
-}
+	let textPostObject = {
+		post_id: null,
+		user_id: req.body.userid,
+		topic: req.body.topic,
+		post: req.body.post,
+		post_date: getDateTime(),
+		subject_id: req.body.subject,
+		post_image: null
+	}
 
-pool.getConnection((err, connection) => {
-	if(err) throw err;
-	connection.query(`SELECT subject_code FROM class_type, users, subjects WHERE users.user_id = '${textPostObject.user_id}' AND subjects.subject_name = '${req.body.subject}' AND subjects.class_type = class_type.type_id`, (mysqliError, result) => {
-		connection.release();
-		if(mysqliError) throw mysqliError;
-		if(result.length == 1)
+	pool.query("INSERT INTO posts SET ?", textPostObject, (err, result) => {
+		if(err) throw err;
+		if(result.affectedRows == 1)
 		{
-			result.forEach((value, key) => {
-				textPostObject.subject_id = value.subject_code;
-				pool.getConnection((err, connection) => {
-					if(err) throw err;
-					connection.query("INSERT INTO posts SET ?", textPostObject, (err, result) => {
-						connection.release();
-						if(err) throw err;
-						if(result.affectedRows == 1)
-						{
-							var post = new TextOnly(textPostObject.topic, timeSince(new Date(textPostObject.post_date)), `${users[textPostObject.user_id].name} ${users[textPostObject.user_id].surname}`, users[textPostObject.user_id].school, req.body.subject, "12344432", textPostObject.user_id, textPostObject.post);
-							res.send({type: "textOnly", object: post.createPost()});
-						}
-					});
-				});
-			});
+			var post = new TextOnly(textPostObject.topic, timeSince(new Date(textPostObject.post_date)), `${users[textPostObject.user_id].name} ${users[textPostObject.user_id].surname}`, users[textPostObject.user_id].school, req.body.subject, "12344432", textPostObject.user_id, textPostObject.post);
+			res.send({type: "textOnly", object: post.createPost()});
 		}
-		else{
-			console.log(JSON.stringify(result));
-		}});
 	});
 });
 

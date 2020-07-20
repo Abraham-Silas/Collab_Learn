@@ -98,7 +98,7 @@ function upload(dest, field, req, res)
 												if(err) throw err;
 												if(result.affectedRows == 1)
 												{
-													var mOnly = new MediaOnly(textPostObject.topic, timeSince(new Date(textPostObject.post_date)), `${field.uusers[textPostObject.user_id].name} ${field.uusers[textPostObject.user_id].surname}`, field.uusers[textPostObject.user_id].school, textPostObject.subject_id, "12344432", textPostObject.user_id, req.file.filename);
+													var mOnly = new MediaOnly(textPostObject.topic, timeSince(new Date(textPostObject.post_date)), `${field.uusers[textPostObject.user_id].name} ${field.uusers[textPostObject.user_id].surname}`, field.uusers[textPostObject.user_id].school, textPostObject.subject_id, "12344432", textPostObject.user_id, req.files[field.field][0].filename);
 													res.send({type: "mOnly", object: mOnly.createPost()});
 												}
 											});
