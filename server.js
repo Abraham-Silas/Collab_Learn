@@ -20,7 +20,7 @@ const emojis = require('emojis-list');
 const emoji = require('node-emoji');
 const { response } = require("express");
 require('events').EventEmitter.defaultMaxListeners = 100000000;
-let port = process.env.PORT || 3000;
+let port = process.env.PORT || 7000;
 server.listen(port);
 const pool = mysql.createPool({
 	connectionLimit: 0,
