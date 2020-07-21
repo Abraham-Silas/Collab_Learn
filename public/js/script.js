@@ -797,7 +797,7 @@ $(() => {
 	$("#privateMsgFrm").submit(e => {
 		e.preventDefault();
 		var textMessage = $(".userMsgtxt").val();
-		console.log(textMessage);
+		// console.log(textMessage);
 		var file = $("#msgFiles").val();
 		$(".emoticons").fadeOut();
 		on = false;
@@ -1236,7 +1236,6 @@ $(() => {
 				$(".notifContent").empty();
 			},
 			success: response => {
-				console.log("RESPONSE", response)
 				if(response.length > 0)
 				{
 					$.each(response, (index, value) => {
@@ -1455,7 +1454,7 @@ $(() => {
 		let mime = event.target.files[0].type;
 		xhttp.onprogress = function(e){
 			let percentage = parseInt(Math.floor(e.loaded)/Math.floor(e.total)) * 100;
-			console.log(percentage);
+			// console.log(percentage);
 			if(percentage == 100)
 			{
 				var extensions = ["image/jpg", "image/jpeg", "image/png", "image/gif"];

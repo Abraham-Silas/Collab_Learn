@@ -35,6 +35,8 @@ function storage(obj){
 							files.forEach((value, index) => {
 								fs.unlinkSync(`./_USERS/${req.body.userID}/${obj.fileDestination}/${value}`);
 							});
+
+							callback(null, `./_USERS/${req.body.userID}/${obj.fileDestination}`);
 						});
 					}
 					catch(exception){
