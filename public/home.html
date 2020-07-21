@@ -581,19 +581,19 @@
 							<!-- // -->
 						</div>
 						<div class="chatsControlsContainer">
-							<form class="chatsControls" enctype="multipart/form-data" method="POST" action="/roomChatMsg">
+							<form class="m-0 chatsControls" enctype="multipart/form-data" method="POST" action="/roomChatMsg">
 								<div class="smileys">	
 									<label class="fa fa-grin rmemoticon"></label>
 									<label for="rfile" class="fa fa-paperclip"></label>
 								</div>
 								<div class="roomMsg">
 									<textarea rows="4" placeholder="Type a message..." class="form-control roomsMsgTextBox" name="roomsMsgTextBox"></textarea> 
-								</div>
-								<div class="roomBtnSend">
-									<button type="submit" class="btn btn-primary btn-sm">Send <i class="fas fa-paper-plane ml-1 mt-1"></i></button>
-									<input type="text" name="userID" id="tfile">
-									<input type="file" name="file" id="rfile">
-									<input type="text" name="ref" id="refID">
+									<div class="roomBtnSend">
+										<button type="submit" class="p-0 mt-1 btn btn-danger btn-sm rounded-circle"><i class="fas fa-paper-plane ml-1 mt-1"></i></button>
+										<input type="text" name="userID" id="tfile">
+										<input type="file" name="file" id="rfile">
+										<input type="text" name="ref" id="refID">
+									</div>
 								</div>
 							</form>
 						</div>

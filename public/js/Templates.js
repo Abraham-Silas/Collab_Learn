@@ -40,6 +40,7 @@ class Template {
         return `<div class="col-12 mb-1 header">
                     <div class="row m-0 p-1 title">
                         <span class="col-auto">${this.subHeader.topic}</span>
+                        <i class="fa fa-ellipsis-v"></i>
                     </div>
                     <div class="postInfo" id="${this.postID}">
                         <i class="mr-2">${this.postTime}</i>

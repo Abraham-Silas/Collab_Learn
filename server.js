@@ -35,7 +35,8 @@ const pool = mysql.createPool({
 let ROOMS_SOCKET = null;
 var connections = [];
 let SOCKET = null;
-
+let subjectsHolder = [];
+let size = 0;
 pool.query("SET NAMES utf8mb4 COLLATE utf8mb4_bin");
 pool.query(`UPDATE login SET logStatus = 'Offline' WHERE logStatus = 'Online'`); //RESET ALL USERS TO BEING OFFLINE
 
@@ -133,24 +134,16 @@ app.post("/saveYourSubjects", (req, res) => {
 });
 
 app.post("/loggedUserSubjects", (req, res) => {
-	pool.getConnection((error, connection) => {
-		if(error) res.status(401).send();
-		connection.query(`SELECT subject_name, subject_code FROM subjects, usersubscription WHERE usersubscription.user_id = ? AND subjects.subject_code = usersubscription.subject_id`, [req.body.user_Id], (err, result) => {
-			connection.release();
-			if(err) res.status(500).send();
-			res.send(result);
-		});
+	pool.query(`SELECT subject_name, subject_code FROM subjects, usersubscription WHERE usersubscription.user_id = ? AND subjects.subject_code = usersubscription.subject_id`, [req.body.user_Id], (err, result) => {
+		if(err) res.status(500).send();
+		res.send(result);
 	});
 });
 
 app.post("/checkForNewMessages", (req, res) => {
-	pool.getConnection((error, connection) => {
-		if(error) res.status(401).send();
-		connection.query(`SELECT _id FROM messages WHERE msgStatus = 'Unread' AND msgTo = ?`, [req.body.userId], (err, result) => {
-			connection.release();
-			if(err) res.status(500).send();
-			res.send(result);
-		});
+	pool.query(`SELECT _id FROM messages WHERE msgStatus = 'Unread' AND msgTo = ?`, [req.body.userId], (err, result) => {
+		if(err) res.status(500).send();
+		res.send(result);
 	});
 });
 
@@ -286,21 +279,30 @@ app.post("/login", obj().none(), (req, res) => {
 });
 
 app.post("/loadSubjects", (req, res) => {
-	pool.query(`SELECT * FROM subjects, usersubscription WHERE subjects.subject_code = usersubscription.subject_id AND usersubscription.user_id = ?`, [req.body.id], (err, result) => {
+	pool.query(`SELECT * FROM subjects WHERE class_type = ?`, [3], (err, result) => {
+		subjectsHolder.splice(0, subjectsHolder.length);
 		if(err) console.log(err);
-		res.send(result);
+		size = result.length;
+		
+		for(let index in result)
+		{
+			pool.query(`SELECT * FROM usersubscription WHERE subject_id = '${result[index].subject_code}' AND user_id = '${req.body.id}'`, (err, response) => {
+				if(err) console.log(err);
+				if(response.length == 0)
+					subjectsHolder.push(result[index]);
+
+				if(index == size-1)
+					res.send(subjectsHolder);
+			});
+		}
 	});
 });
 
 app.post("/getPosts", (req, res) => {
-	pool.getConnection((err, connection) => {
-		if(err) throw err;
-		connection.query(`SELECT * FROM users, usersubscription, posts, subjects WHERE subjects.class_type = ? AND posts.subject_id = usersubscription.subject_id AND usersubscription.subject_id = subjects.subject_code AND users.user_id = posts.user_id AND usersubscription.user_id = ? ORDER BY post_date DESC LIMIT 10`, [users[req.body._id].level, req.body._id], (er, result) => {
-			connection.release();
-			if(er) throw er;
-			res.send(result);
-		});
-	})
+	pool.query(`SELECT * FROM users, usersubscription, posts, subjects WHERE subjects.class_type = ? AND posts.subject_id = usersubscription.subject_id AND usersubscription.subject_id = subjects.subject_code AND users.user_id = posts.user_id AND usersubscription.user_id = ? ORDER BY (CASE WHEN post_date <= CURDATE() THEN RAND() END) LIMIT 10`, [users[req.body._id].level, req.body._id], (er, result) => {
+		if(er) throw er;
+		res.send(result);
+	});
 });
 
 app.post("/UserNotes", (req, res) => {
@@ -311,179 +313,128 @@ app.post("/UserNotes", (req, res) => {
 		date: getDateTime()
 	}
 
-	pool.getConnection((err, connection) => {
-		if(err) res.status(500).send();
-		connection.query("INSERT INTO notes SET ?", notesObjt, (er, result) => {
-			connection.release();
-			if(er) res.status(404).send();
-			if(result.affectedRows == 1){
-				res.status(200).send();
-			}
-		});
+	pool.query("INSERT INTO notes SET ?", notesObjt, (er, result) => {
+		if(er) res.status(404).send();
+		if(result.affectedRows == 1){
+			res.status(200).send();
+		}
 	});
+
 });
 
 app.post("/loadNotes", (req, res) => {
-	pool.getConnection((err, connection) => {
-		if(err) res.status(500).send();
-		connection.query(`SELECT * FROM notes WHERE user_id = '${req.body.userId}' ORDER BY date DESC`, (error, result) => {
-			connection.release();
-			if(error) res.status(400).send();
-			res.send(result);
-		});
+	pool.query(`SELECT * FROM notes WHERE user_id = '${req.body.userId}' ORDER BY date DESC`, (error, result) => {
+		connection.release();
+		if(error) res.status(400).send();
+		res.send(result);
 	});
 });
 
 app.post("/loadUserMediaFiles", (req, res) => {
-	pool.getConnection((err, connect) => {
+	pool.query(`SELECT * FROM media WHERE user_id = '${req.body.vidsFor}'`, (err, result) => {
+		connect.release();
 		if(err) res.status(500).send();
-		connect.query(`SELECT * FROM media WHERE user_id = '${req.body.vidsFor}'`, (err, result) => {
-			connect.release();
-			if(err) res.status(500).send();
-			res.send(result);
-		});
+		res.send(result);
 	});
 });
 
 app.post("/loadUserDocumentFiles", (req, res) => {
-	pool.getConnection((err, connect) => {
+	pool.query(`SELECT * FROM documents WHERE user_id = '${req.body.docsFor}'`, (err, result) => {
 		if(err) res.status(500).send();
-		connect.query(`SELECT * FROM documents WHERE user_id = '${req.body.docsFor}'`, (err, result) => {
-			connect.release();
-			if(err) res.status(500).send();
-			res.send(result);
-		});
+		res.send(result);
 	});
 });
 
 app.post("/searchDocs", (req, res) => {
-	pool.getConnection((err, connect) => {
+	pool.query(`SELECT * FROM documents WHERE user_id = '${req.body.docsFor}' AND file_description LIKE '%${req.body.sKey}%'`, (err, result) => {
 		if(err) res.status(500).send();
-		connect.query(`SELECT * FROM documents WHERE user_id = '${req.body.docsFor}' AND file_description LIKE '%${req.body.sKey}%'`, (err, result) => {
-			connect.release();
-			if(err) res.status(500).send();
-			res.send(result);
-		});
+		res.send(result);
 	});
 });
 
 app.post("/loadUserBooks", (req, res) => {
-	pool.getConnection((err, connect) => {
-		if(err) res.status(500).send();
-		connect.query(`SELECT * FROM documents WHERE doc_type = 'book' AND user_id = '${req.body.docsFor}'`, (err, result) => {
-			connect.release();
-			if(err) res.status(500).send("Error");
-			res.status(200).send(result);
-		});
+	pool.query(`SELECT * FROM documents WHERE doc_type = 'book' AND user_id = '${req.body.docsFor}'`, (err, result) => {
+		if(err) res.status(500).send("Error");
+		res.status(200).send(result);
 	});
 });
 
 app.post("/loadUserPapers", (req, res) => {
-	pool.getConnection((err, connect) => {
-		if(err) res.status(500).send();
-		connect.query(`SELECT * FROM documents WHERE doc_type = 'paper' AND user_id = '${req.body.docsFor}'`, (err, result) => {
-			connect.release();
-			if(err) res.status(500).send("Error");
-			res.status(200).send(result);
-		});
+	pool.query(`SELECT * FROM documents WHERE doc_type = 'paper' AND user_id = '${req.body.docsFor}'`, (err, result) => {
+		if(err) res.status(500).send("Error");
+		res.status(200).send(result);
 	});
 });
 
 app.post("/loadChats", (req, res) => {
 	getUsers(req.body.userID, data => {
-		pool.getConnection((err, connection) => {
+		pool.query(`SELECT DISTINCT msgFrom, name, surname, profile FROM messages, users WHERE messages.msgFrom = users.user_id AND messages.msgTo = ? AND users.studyLevel = ? GROUP BY msgFrom, name, surname, profile ORDER BY msgDate DESC`, [req.body.userID, users[req.body.userID].level], (err, results) => {
 			if(err) res.status(500).send();
-			connection.query(`SELECT DISTINCT msgFrom, name, surname, profile FROM messages, users WHERE messages.msgFrom = users.user_id AND messages.msgTo = ? AND users.studyLevel = ? GROUP BY msgFrom, name, surname, profile ORDER BY msgDate DESC`, [req.body.userID, users[req.body.userID].level], (err, results) => {
-				connection.release();
-				if(err) res.status(500).send();
-				for(let i = 0; i < data.length; i++)
+			for(let i = 0; i < data.length; i++)
+			{
+				for(let j = 0; j < results.length; j++)
 				{
-					for(let j = 0; j < results.length; j++)
+					if(results[j].msgFrom == data[i].sentFrom)
 					{
-						if(results[j].msgFrom == data[i].sentFrom)
-						{
-							results[j] = data[i];
-							results[j].msgStatus = "Unread";
-						}
+						results[j] = data[i];
+						results[j].msgStatus = "Unread";
 					}
 				}
-				res.status(200).send(results);
-			});
+			}
+			res.status(200).send(results);
 		});
 	});
 });
 
 function getUsers(id, callback){
-	pool.getConnection((error, connection) => {
-		if(error) console.log(error);
-		connection.query(`SELECT DISTINCT sentFrom, name, surname, profile FROM newmessages, users WHERE users.user_id = newmessages.sentFrom AND newmessages.sentTo = ?`, [id], (er, results) => {
-			connection.release();
-			if(er) console.log(er);
-			callback(results);
-		});
+	pool.query(`SELECT DISTINCT sentFrom, name, surname, profile FROM newmessages, users WHERE users.user_id = newmessages.sentFrom AND newmessages.sentTo = ?`, [id], (er, results) => {
+		if(er) console.log(er);
+		callback(results);
 	});
 }
 
 app.post("/loadChatMessages", (req, res) => {
-	pool.getConnection((err, connection) => {
-		if(err) res.status(500).send();
-		connection.query(`SELECT * FROM messages WHERE msgFrom = '${req.body.me}' AND msgTo = '${req.body.chat}' OR msgFrom = '${req.body.chat}' AND msgTo = '${req.body.me}' ORDER BY msgDate ASC`, (err, results) => {
-			if(err) res.status(500).send("Internal server error occured...");
-			connection.query(`UPDATE messages SET msgStatus = 'Read' WHERE msgFrom = '${req.body.chat}' AND msgTo = '${req.body.me}'`, (error, result) => {
-				connection.release();
-			});
-			saveFilesQuery(`DELETE FROM newmessages WHERE sentFrom = '${req.body.chat}' AND sentTo = '${req.body.me}'`);
-			res.status(200).send(results);
+	pool.query(`SELECT * FROM messages WHERE msgFrom = '${req.body.me}' AND msgTo = '${req.body.chat}' OR msgFrom = '${req.body.chat}' AND msgTo = '${req.body.me}' ORDER BY msgDate ASC`, (err, results) => {
+		if(err) res.status(500).send("Internal server error occured...");
+		pool.query(`UPDATE messages SET msgStatus = 'Read' WHERE msgFrom = '${req.body.chat}' AND msgTo = '${req.body.me}'`, (error, result) => {
+			if(error) console.log(error)
 		});
+		saveFilesQuery(`DELETE FROM newmessages WHERE sentFrom = '${req.body.chat}' AND sentTo = '${req.body.me}'`);
+		res.status(200).send(results);
 	});
 });
 
 app.post("/saveEvents", (req, res) => {
-	pool.getConnection((err, connection) => {
-		if(err) res.status(500).send();
-		connection.query(`INSERT INTO upcoming_events SET ?`, [req.body], (err, results) => {
-			connection.release();
-			if(err) res.status(500).send("Error...");
-			if(results.affectedRows == 1)
-				res.status(200).send("Event Saved");
-			
-		});
+	pool.query(`INSERT INTO upcoming_events SET ?`, [req.body], (err, results) => {
+		if(err) res.status(500).send("Error...");
+		if(results.affectedRows == 1)
+			res.status(200).send("Event Saved");
+		
 	});
 });
 
 app.post("/markRead", (req, res) => {
-	pool.getConnection((err, connection) => {
-		if(err) res.status(500).send();
-		connection.query(`UPDATE messages SET msgStatus = 'Read' WHERE msgFrom = '${req.body.id}' AND msgTo = '${req.body.user}'`, (error, result) => {
-			connection.release();
-			if(error) res.status(500).send("Error");
-			if(result.affectedRows == 1)
-				res.status(200).send(req.body.id);
-		});
+	pool.query(`UPDATE messages SET msgStatus = 'Read' WHERE msgFrom = '${req.body.id}' AND msgTo = '${req.body.user}'`, (error, result) => {
+		if(error) res.status(500).send("Error");
+		if(result.affectedRows == 1)
+			res.status(200).send(req.body.id);
 	});
 });
 
 app.post("/loadUpcomingEvents", (req, res) => {
-	pool.getConnection((err, connection) => {
-		if(err) res.status(500).send();
-		connection.query(`SELECT * FROM upcoming_events WHERE user_id = ? ORDER BY Date(event_date) >= ?`, [req.body.userId, req.body.nowDate], (err, results) => {
-			connection.release();
-			if(err) res.status(500).send("Internal server error occured...");
-			res.status(200).send(results);
-		});
+	pool.query(`SELECT * FROM upcoming_events WHERE user_id = ? ORDER BY Date(event_date) >= ?`, [req.body.userId, req.body.nowDate], (err, results) => {
+		if(err) res.status(500).send("Internal server error occured...");
+		res.status(200).send(results);
 	});
 });
 
 app.post("/createRooms", (req, res) => {
-	pool.getConnection((err, connection) => {
-		if(err) res.status(500).send();
-		connection.query(`INSERT INTO rooms SET ?`, [req.body], (err, results) => {
-			connection.release();
-			if(err) res.status(500).send("Error...");
-			//if(results.affectedRows == 1)
+	pool.query(`INSERT INTO rooms SET ?`, [req.body], (err, results) => {
+		if(err) res.status(500).send("Error...");
+		if(results.affectedRows == 1)
 			res.status(200).send("Room Created");
-			
-		});
+		else
+			res.status(500).end("Error while creating a room...");
 	});
 });
 
@@ -494,77 +445,57 @@ app.post("/loadRooms", (req, res) => {
 	getActiveSessions(data => {
 		if(data.length > 0){
 			if(users[req.body.find] != undefined)
-				userLevel = users[req.body.find].level;
-			pool.getConnection((err, connection) => {
-				if(err) res.status(500).send();
-				for(let i = 0; i < data.length; i++)
-				{
-					connection.query(`SELECT * FROM rooms, subjects, users WHERE rooms.roomSubject = subjects.subject_code AND subjects.class_type = ? AND users.user_id = rooms.admin AND rooms._id = ?`, [userLevel, data[i].room_id], (err, results) => {
-						if(err) console.log(err);
-						activeRooms.push(results[0]);
+			userLevel = users[req.body.find].level;
+			for(let i = 0; i < data.length; i++)
+			{
+				pool.query(`SELECT * FROM rooms, subjects, users WHERE rooms.roomSubject = subjects.subject_code AND subjects.class_type = ? AND users.user_id = rooms.admin AND rooms._id = ?`, [userLevel, data[i].room_id], (err, results) => {
+					if(err) console.log(err);
+					activeRooms.push(results[0]);
 
-						if(i == data.length-1)
-						{
-							res.status(200).send(activeRooms);
-							activeRooms.splice(0, activeRooms.length);
-							connection.release();
-						}
-					});
-				}				
-			});
+					if(i == data.length-1)
+					{
+						res.status(200).send(activeRooms);
+						activeRooms.splice(0, activeRooms.length);
+					}
+				});
+			}	
 		}
 		else
 		{
 			res.send(activeRooms);
 		}
-		// res.end("done");
 	});
 });
 
 function getActiveSessions(callback)
 {
-	pool.getConnection((err, connection) => {
+	pool.query(`SELECT room_id FROM active_rooms WHERE room_status = 'Online'`, (err, results) => {
 		if(err) console.log(err);
-		connection.query(`SELECT room_id FROM active_rooms WHERE room_status = 'Online'`, (err, results) => {
-			connection.release();
-			if(err) console.log(err);
-			callback(results);
-		});
+		callback(results);
 	});
 }
 
 app.post("/loadSelectedRoom", (req, res) => {
-	pool.getConnection((err, connection) => {
-		if(err) res.status(500).send(err);
-		connection.query(`SELECT * FROM rooms, users, subjects WHERE _id = ? AND rooms.admin = users.user_id AND rooms.roomSubject = subjects.subject_code`, [req.body.id], (er, results) => {
-			connection.release();
-			if(er) res.status(500).send(er);
-			res.status(200).send(results);
-		});
+	pool.query(`SELECT * FROM rooms, users, subjects WHERE _id = ? AND rooms.admin = users.user_id AND rooms.roomSubject = subjects.subject_code`, [req.body.id], (er, results) => {
+		if(er) res.status(500).send(er);
+		res.status(200).send(results);
 	});
 });
 
 app.post("/loadRoomChats", (req, res) => {
-	pool.getConnection((err, connection) => {
-		if(err) res.status(500).send(err);
-		connection.query(`SELECT * FROM roomsmessages, users WHERE roomsmessages.roomRef = ? AND roomsmessages.sentBy = users.user_id ORDER BY roomsmessages.msgDate ASC`, [req.body.room], (er, results) => {
-			connection.release();
-			if(er) res.status(500).send(er);
-			res.status(200).send(results);
-		});
+	pool.query(`SELECT * FROM roomsmessages, users WHERE roomsmessages.roomRef = ? AND roomsmessages.sentBy = users.user_id ORDER BY roomsmessages.msgDate ASC`, [req.body.room], (er, results) => {
+		if(er) res.status(500).send(er);
+		res.status(200).send(results);
 	});
 });
 
 app.post("/reactToPost", (req, res) => {
-	pool.getConnection((error, connection) => {
-		if(error) res.status(500).send("Error");
-		connection.query(`SELECT * FROM post_reactions WHERE user = ? AND post_id = ?`, [req.body.user, req.body.post_id], (error, response) => {
+		pool.query(`SELECT * FROM post_reactions WHERE user = ? AND post_id = ?`, [req.body.user, req.body.post_id], (error, response) => {
 			if(error) res.status(500).send("Error");
 			if(response.length == 1)
 			{
 				saveFilesQuery(`DELETE FROM post_reactions WHERE user = '${req.body.user}' AND post_id = '${req.body.post_id}'`);
-				connection.query(`SELECT * FROM notifications WHERE react_id = ?`, [response[0]["_id"]], (error, response) => {
-					connection.release();
+				pool.query(`SELECT * FROM notifications WHERE react_id = ?`, [response[0]["_id"]], (error, response) => {
 					if(error) res.static(500).send("Error");
 					if(response.length == 1){
 						saveFilesQuery(`DELETE FROM notifications WHERE react_id = '${response[0]["_id"]}'`);
@@ -574,17 +505,17 @@ app.post("/reactToPost", (req, res) => {
 			}
 			else
 			{
-				connection.query(`INSERT INTO post_reactions SET ?`, [req.body], (err, result) => {
+				pool.query(`INSERT INTO post_reactions SET ?`, [req.body], (err, result) => {
 					if(err) res.status(500).send("Error");
 					if(result.affectedRows == 1){
-						connection.query(`SELECT user_id FROM posts WHERE post_id = ?`, [req.body.post_id], (error, result) => {
+						pool.query(`SELECT user_id FROM posts WHERE post_id = ?`, [req.body.post_id], (error, result) => {
 							if(error) res.status(500).send("Error");
 							result.forEach((value, index) => {
 								if(value.user_id == req.body.user)
 									res.status(200).send("Success");
 								else
 								{
-									connection.query(`SELECT MAX(_id) FROM post_reactions WHERE user = ?`, [req.body.user], (error, results) => {
+									pool.query(`SELECT MAX(_id) FROM post_reactions WHERE user = ?`, [req.body.user], (error, results) => {
 										if(error) res.status(500).send("Error...");
 										let notificaton = {
 											_id: null,
@@ -596,10 +527,9 @@ app.post("/reactToPost", (req, res) => {
 											notification_status: "Not Viewed",
 											react_id: results[0]["MAX(_id)"]
 										}
-										connection.query(`INSERT INTO notifications SET ?`, [notificaton], (error, result) => {
-											connection.release();
+										pool.query(`INSERT INTO notifications SET ?`, [notificaton], (error, result) => {
 											if(error) res.status(500).send("Error...");
-											//if(result.affectedRows == 1)
+											if(result.affectedRows == 1)
 												res.status(200).send("Success");
 										});
 									});
@@ -610,59 +540,41 @@ app.post("/reactToPost", (req, res) => {
 				});
 			}
 		});
-	});
 });
 
 app.post("/newUpdates", (req, res) => {
-	pool.getConnection(async (error, connection) => {
-		if(error) res.status(500).send("Error");
-		await connection.query(`SELECT * FROM notifications WHERE notifications.notification_status = 'Not Viewed' AND notifications.to = ?`, [req.body.userId], (error, result) => {
-			connection.release();
-			if(error) res.status(500).send("Error...");
-			res.status(200).send(result);
-		});
+	pool.query(`SELECT * FROM notifications WHERE notifications.notification_status = 'Not Viewed' AND notifications.to = ?`, [req.body.userId], (error, result) => {
+		if(error) res.status(500).send("Error...");
+		res.status(200).send(result);
 	});
 });
 
 function getOtherNotifs(user, callback)
 {
-	pool.getConnection((error, connection) => {
-		if(error) res.status(500).send("Error");
-		connection.query(`SELECT * FROM notifications, users WHERE notifications.notificationType <> 'reaction' AND notifications.notification_status = 'Not Viewed' AND notifications.from = users.user_id AND notifications.to = ?`, [user], (error, results) => {
-			connection.release();
-			if(error) res.status(500).send("Error...");
-			callback(results);
-		});
+	pool.query(`SELECT * FROM notifications, users WHERE notifications.notificationType <> 'reaction' AND notifications.notification_status = 'Not Viewed' AND notifications.from = users.user_id AND notifications.to = ?`, [user], (error, results) => {
+		if(error) res.status(500).send("Error...");
+		callback(results);
 	});
 } 
 
 app.post("/getNotifications", (req, res) => {
 	getOtherNotifs(req.body.me, data => {
-		pool.getConnection((error, connection) => {
-			if(error) res.status(500).send("Error");
-			connection.query(`SELECT * FROM notifications, users, post_reactions WHERE notifications.notificationType = 'reaction' AND notifications.from = users.user_id AND notifications.notification_status = 'Not Viewed' AND post_reactions._id = notifications.react_id AND notifications.to = ?`, [req.body.me], (error, result) => {
-				connection.release();
-				if(error) res.status(500).send("Error...");
-				// console.log(result);
-				result.forEach((value, index) => {
-					data.push(value);
-				});
-				// console.log(data);
-				res.status(200).send(data);
-				saveFilesQuery(`UPDATE notifications SET notifications.notification_status = 'Viewed' WHERE notifications.to = '${req.body.me}' AND notifications.notificationType = 'reaction'`);
+		pool.query(`SELECT * FROM notifications, users, post_reactions WHERE notifications.notificationType = 'reaction' AND notifications.from = users.user_id AND notifications.notification_status = 'Not Viewed' AND post_reactions._id = notifications.react_id AND notifications.to = ?`, [req.body.me], (error, result) => {
+			if(error) res.status(500).send("Error...");
+			result.forEach((value, index) => {
+				data.push(value);
 			});
+
+			res.status(200).send(data);
+			saveFilesQuery(`UPDATE notifications SET notifications.notification_status = 'Viewed' WHERE notifications.to = '${req.body.me}' AND notifications.notificationType = 'reaction'`);
 		});
 	});
 });
 
 app.post("/roomType", (req, res) => {
-	pool.getConnection(async (error, connection) => {
-		if(error) res.status(500).send("Error");
-		await connection.query(`SELECT * FROM rooms WHERE _id = ?`, [req.body.data], (err, response) => {
-			connection.release();
-			if(err) res.status(500).send("Error");
-			res.status(200).send(response);
-		})
+	pool.query(`SELECT * FROM rooms WHERE _id = ?`, [req.body.data], (err, response) => {
+		if(err) res.status(500).send("Error");
+		res.status(200).send(response);
 	});
 });
 
@@ -703,7 +615,7 @@ app.post("/getSubjectVideoItems", (req, res) => {
 	});
 });
 
-let sendEmail = async (mail = "hlamu.maluleka@gmail.com") => {
+let sendEmail = async (mail = "nhlamulo.silas@gmail.com") => {
 	let transporter = mailer.createTransport({
 		service: 'gmail',
 		auth: {
@@ -715,9 +627,12 @@ let sendEmail = async (mail = "hlamu.maluleka@gmail.com") => {
 	let mailOptions = {
 		from: 'u15231748@tuks.co.za',
 		to: mail,
-		subject: 'NEW SESSION INVITATION',
-		html: `<h1>Session Invitation</h1> <br><br> <b>Nhlamulo Maluleka</b> has invited you to join their Artificial Intelligence session titled: <b>The dangers of A.I</b>.
-		<br><br><h4>To join the session, <a href="http://localhost:3000/" class="btn btn-danger btn-lg">login</a> to your _Co account. under the Notifications tab, appect the invitation and you are good to go!!</h4>`
+		subject: 'SESSION INVITATION',
+		html: `<body>
+					<h1>Session Invitation</h1> <br><br> <b>Nhlamulo Maluleka</b> has invited you to join their Artificial Intelligence session titled: <b>The dangers of A.I</b>.
+					<br><br><h4>To join the session, 
+					<a style="font-size: 17pt; padding: 4px; background-color: red;	color: white; border-radius: 10px;" href="http://localhost:3000/" class="btn btn-danger btn-lg">login</a> to your _Co account. under the Notifications tab, appect the invitation and you are good to go!!</h4>
+				</body>`
 	}
 
 	await transporter.sendMail(mailOptions, (error, info) => {
@@ -728,35 +643,23 @@ let sendEmail = async (mail = "hlamu.maluleka@gmail.com") => {
 
 async function newInvitation(sqlQuery, dataObj, callback)
 {
-	pool.getConnection(async (error, connection) => {
-		if(error) res.status(500).send("Error");
-		await connection.query(sqlQuery, [dataObj], async (err, response) => {
-			connection.release();
-			if(err) console.log(err);
-			callback(await response);
-		});
+	pool.query(sqlQuery, [dataObj], async (err, response) => {
+		if(err) console.log(err);
+		callback(await response);
 	});
 }
 
 app.post("/listRooms", (req, res) => {
-	pool.getConnection((error, connection) => {
-		if(error) console.log(error);
-		connection.query(`SELECT * FROM rooms, subjects WHERE rooms.admin = ? AND subjects.subject_code = rooms.roomSubject ORDER BY _id DESC`, [req.body.data], (err, result) => {
-			connection.release();
-			if(err) console.log(err);
-			res.status(200).send(result);
-		});
+	pool.query(`SELECT * FROM rooms, subjects WHERE rooms.admin = ? AND subjects.subject_code = rooms.roomSubject ORDER BY _id DESC`, [req.body.data], (err, result) => {
+		if(err) console.log(err);
+		res.status(200).send(result);
 	});
 });
 
 app.post("/loadOnlinePeople",  (req, res) => {
-	pool.getConnection(async (error, connection) => {
-		if(error) console.log(error);
-		await connection.query("SELECT * FROM users, login WHERE login.user_id = users.user_id AND studyLevel = ? AND users.user_id <> ? ORDER BY schoolName = ?, login.logStatus = 'Online' DESC", [users[req.body.user].level, req.body.user, users[req.body.user].school], (err, response) => {
-			connection.release();
-			if(err) console.log(err);
-			res.status(200).send(response);
-		});
+	pool.query("SELECT * FROM users, login WHERE login.user_id = users.user_id AND studyLevel = ? AND users.user_id <> ? ORDER BY schoolName = ?, login.logStatus = 'Online' DESC", [users[req.body.user].level, req.body.user, users[req.body.user].school], (err, response) => {
+		if(err) console.log(err);
+		res.status(200).send(response);
 	});
 });
 
@@ -775,13 +678,9 @@ app.post("/findAContact", (req, res) => {
 });
 
 app.post("/roomDetails", (req, res) => {
-	pool.getConnection((error, connection) => {
-		if(error) console.log(error);
-		connection.query("SELECT * FROM rooms, subjects, users WHERE _id = ? AND rooms.roomSubject = subjects.subject_code AND users.user_id = rooms.admin", [req.body.room], (err, response) => {
-			connection.release();
-			if(err) console.log(err);
-			res.status(200).send(response[0]);
-		});
+	pool.query("SELECT * FROM rooms, subjects, users WHERE _id = ? AND rooms.roomSubject = subjects.subject_code AND users.user_id = rooms.admin", [req.body.room], (err, response) => {
+		if(err) console.log(err);
+		res.status(200).send(response[0]);
 	});
 });
 

@@ -967,6 +967,14 @@ nav span#logo{
 	font-size: 18pt !important;
 }
 
+.header .title i{
+	position: absolute; 
+	right: 5px;
+	margin: 7px;
+	font-size: 12pt;
+	cursor: pointer;
+}
+
 .header i{
 	float: right;
 	font-size: 10pt;
@@ -2241,12 +2249,11 @@ nav span#logo{
 	left: 0;
 	display: flex;
 	padding-top: 5px;
-	padding-bottom: 5px;
 	background-color: rgba(3, 1, 20, 0.911);
 }
 
 .roomMsg{
-	width: 90%;
+	width: 100%;
 }
 
 .roomMsg textarea{
@@ -2268,12 +2275,21 @@ nav span#logo{
 }
 
 .roomBtnSend button{
-	position: relative;
-	display: flex;
-	margin: 5px;
+	position: absolute;
+	display: block;
+	right: 8px;
+	text-align: center;
 	bottom: 0;
-	font-size: 13pt;
-	top: -5px;
+	font-size: 17pt;
+	top: 33px;
+	width: 40px;
+	height: 40px;
+	margin-top: 3px;
+}
+
+.roomBtnSend button i{
+	position: relative;
+	left: -3px;
 }
 
 .discussionMedia{
@@ -2289,10 +2305,11 @@ nav span#logo{
 .discussionMedia video{
 	position: relative;
 	width: 100%;
-	height: 22em;
+	height: 23em;
 	left: 0;
 	-webkit-scrollbar: none;
 	display: block;
+	margin: 0;
 }
 
 .discussionMedia h6{
@@ -2566,6 +2583,7 @@ nav span#logo{
 	-webkit-appearance: none !important;
 	background: transparent;
 	border: 0;
+	padding-right: 55px;
 }
 
 #tfile, #rfile, #refID{
@@ -2846,30 +2864,31 @@ nav span#logo{
 	margin: 0px;
 	padding: 4px;
 	border-radius: 5px;
+	white-space: nowrap;
+	display: block;
+	overflow-x: hidden;
+	cursor: pointer;
 }
 
 .myRoomsList div span:nth-child(1) img{
 	position: relative;
-	width: 90px;
-	height: 90px;
+	width: 50px;
+	height: 50px;
 	border-radius: 50%;
+}
+
+.myRoomsList .roomAv div,
+.myRoomsList .roomAv img{
+	pointer-events: none;
 }
 
 .myRoomsList div span:nth-child(2){
 	position: relative;
 	color: black;
 	font-size: 17pt;
-	top: 10px;
+	top: 6px;
 	left: -10px;
 	font-weight: normal;
-}
-
-.myRoomsList button{
-	position: absolute;
-	display: inline-block;
-	font-size: 12pt;
-	right: 10px;
-	top: 14px;
 }
 
 .rmlist{

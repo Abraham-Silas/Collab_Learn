@@ -497,13 +497,12 @@ export let selectRoom = (sess) => {
         success: response => {
             $.each(response, (index, value) => {
                 $(".rmlist")
-                .append(`<div class="m-0 mb-1 p-1 roomAv">
+                .append(`<div class="m-0 mb-1 p-1 roomAv" rel="${value._id}">
                             <div class="row m-0">
-                                <span class="col-2 p-0">
+                                <span class="p-0 m-0">
                                     <img src="media/${value.room_cover}">
                                 </span>
-                                <span class="col p-0">${value.roomName}</span>
-                                <button type="button" class="btn btn-danger btn-sm" rel="${value._id}"><i class="fas fa-user-plus mr-1" style="color: white;"></i>Start</button>
+                                <span class="p-0 ml-3">${value.roomName}</span>
                             </div>
                         </div>`);
             });

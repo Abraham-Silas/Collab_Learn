@@ -1018,10 +1018,9 @@ $(() => {
 			{
 				$(event.target).ajaxSubmit({
 					success: response => {
-						if(response == "Success")
-						{
-							selectRoom(session.getSession);
-						}
+						$(".newRoomBg").fadeOut();
+						CURRENT_ROOM_ID = response["MAX(_id)"];
+						loadOnlineUsers(CURRENT_ROOM_ID);
 					},
 					error: (xhr, errMsg) => {
 						console.log(xhr.status, errMsg);
@@ -1044,9 +1043,10 @@ $(() => {
 
 	$(".makeAroom").on('click', () => {
 		$(".newRoomWindow").fadeOut();
-		$.post("/loadSubjects", {id: session.getSession}, response => {
+		$.post("/loggedUserSubjects", {user_Id: session.getSession}, response => {
 			$("#roomSubject").empty();
 			$("#roomSubject").append("<option>--Select--</option>");
+			console.log(response)
 			$.each(response, (index, value) => {
 				$("#roomSubject").append(`<option value="${value.subject_code}">${value.subject_name}</option>`);
 			});
@@ -1144,6 +1144,7 @@ $(() => {
 						$(".roomMediaPreview img").css("display", "block");
 						$(".roomMediaPreview img").removeAttr();	
 						$(".roomMediaPreview video").css("display", "none");
+						document.getElementsByClassName('previous')[0].style.display = "none";
 					});
 				},
 				error: (xhr, errMsg) => {
@@ -1379,7 +1380,7 @@ $(() => {
 		selectRoom(session.getSession);
 	});
 
-	$(document).on("click", ".rmlist button", e => {
+	$(document).on("click", ".rmlist .roomAv", e => {
 		$(".usersList").empty();
 		CURRENT_ROOM_ID = e.target.getAttribute("rel");
 		loadOnlineUsers(CURRENT_ROOM_ID);
