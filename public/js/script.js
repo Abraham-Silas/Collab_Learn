@@ -557,7 +557,7 @@ $(() => {
 		var topic = $(e.target).text();
 		$("#topic").text(topic);
 		$("#subject").val(e.target.id);
-		$(".postAddOns #subject").attr("value", topic);
+		// $(".postAddOns #subject").attr("value", topic);
 	});
 
 	$(".pH7 i").on("click", () => {
